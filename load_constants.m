@@ -1,9 +1,3 @@
-clear;
-close all;
-
-load /Users/gracekwak/Documents/MATLAB/Model/Rx/run_rx_sim.mlx;
-load Rx/run_rx_sim.mlx;
-
 constants.data_bits = [0 1 0 0 0 0 1 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 1,...
     1 1 0 0 1 0 0 1 1 0 0 0 0 1 0 1 1 1 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 0,...
     0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 0 1 0 0 1 0 1 1 0 1 1,...
@@ -29,7 +23,3 @@ constants.sps = constants.Fs/constants.Rs; % Number of samples per symbol
 constants.t = linspace(0, constants.Tmax-1/constants.Fs, constants.N); % Time vector
 constants.f = linspace(-constants.Fs/2, constants.Fs/2, constants.N); % Frequency vector. Recall from 113 that DFT gives us -f/2 to +f/2
 constants.key = [1, 1, 1, -1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, 1];
-
-[tx_sig, rx_apriori] = run_tx_sim(constants);
-rec_sig = run_channel_sim(tx_sig, constants.noise_std_dev, constants.N, "NONE");
-rec_data_bits = run_rx_sim(rec_sig, rx_apriori, constants);
