@@ -24,14 +24,14 @@ f = linspace(-Fs/2, Fs/2, N); % Frequency vector. Recall from 113 that DFT gives
 % transBits = randi([0, 1], 1, Ns);
 % transSymbols = 2*transBits - 1;
 
-bits =[0 1 0 0 0 0 1 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 1,...
-       1 1 0 0 1 0 0 1 1 0 0 0 0 1 0 1 1 1 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 0,...
-       0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 0 1 0 0 1 0 1 1 0 1 1,...
-       0 1 0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 0 0 1 1 0 0 0 0 1 0 1 1 1 0 1 0 0,...
-       0 1 1 0 1 0 0 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 0 0 0 0 0 0 1,...
-       1 0 1 0 0 1 0 1 1 1 0 0 1 1 0 0 1 0 0 0 0 0 0 1 1 0 0 0 1 1 0 1 1 0,...
-       1 1 1 1 0 1 1 0 1 1 0 1 0 1 1 1 0 0 0 0 0 1 1 0 1 1 0 0 0 1 1 0 0 1,...
-       0 1 0 1 1 1 0 1 0 0 0 1 1 0 0 1 0 1];
+% bits =[0 1 0 0 0 0 1 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 1,...
+%        1 1 0 0 1 0 0 1 1 0 0 0 0 1 0 1 1 1 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 0,...
+%        0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 0 1 0 0 1 0 1 1 0 1 1,...
+%        0 1 0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 0 0 1 1 0 0 0 0 1 0 1 1 1 0 1 0 0,...
+%        0 1 1 0 1 0 0 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 0 0 0 0 0 0 1,...
+%        1 0 1 0 0 1 0 1 1 1 0 0 1 1 0 0 1 0 0 0 0 0 0 1 1 0 0 0 1 1 0 1 1 0,...
+%        1 1 1 1 0 1 1 0 1 1 0 1 0 1 1 1 0 0 0 0 0 1 1 0 1 1 0 0 0 1 1 0 0 1,...
+%        0 1 0 1 1 1 0 1 0 0 0 1 1 0 0 1 0 1];
 
 loadStruct = load('module4_symbols.mat');
 transSymbols = loadStruct.module4_symbols;
@@ -98,7 +98,17 @@ Rx = Tx + noise;
 % Filter your transmitted signal with the generated discrete TF. 
 % Input variable is "Rx" and output variable is "y"
 
-y = Rx;%real(filter(a{:}, b{:}, Rx)); %Rx
+%%
+%%%%%%%%%%%%%%%%%%%%%%%%%% this is different than frame sync because it
+%%%%%%%%%%%%%%%%%%%%%%%%%% doesn't solve false lock
+% Next, let’s add a random channel propagation delay in units of sampling intervals (not symbol intervals):
+timeOffset = 0; % Delay (in samples) added [20->late by 20, 160->early by 20) 20->err
+% Delayed sequence
+y = [zeros(1, timeOffset), Rx(1:end-timeOffset)];
+%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+% y = Rx;%real(filter(a{:}, b{:}, Rx)); %Rx
 
 %% Demodulation
 
@@ -114,14 +124,14 @@ inph = zeros(1, N);
 quad = zeros(1, N);
 inph_ = zeros(1, N);
 quad_ = zeros(1, N);
-err = zeros(1, N);
+CL_errs = zeros(1, N);
 
 kp=8.5;
 ki=0.1;
 integrator=0;
 
 figure;
-tl = tiledlayout(2,2,'TileSpacing','Compact');
+tl = tiledlayout(2,2,'TileSpacing','Tight');
 title(tl, 'Costas loop');
 txt = ['PhaseOffset = ' num2str(phaseOffset) ', FreqOffset = ' num2str(frequencyOffset)];
 subtitle(tl, txt);
@@ -146,38 +156,13 @@ for i=order+1:N
 
     I = conv(inph_(i-order:i), lp, 'valid');
     Q = conv(quad_(i-order:i), lp, 'valid');
-    inph(i) = I(end); % not necessary lol
-    quad(i) = Q(end);
+    inph(i) = I;
+    quad(i) = Q;
 
-    err(i)=inph(i)*quad(i);
-    integrator = integrator + ki*err(i);
-    ph(i+1)=ph(i)+err(i)*kp+integrator;
+    CL_errs(i)=inph(i)*quad(i);
+    integrator = integrator + ki*CL_errs(i);
+    ph(i+1)=ph(i)+CL_errs(i)*kp+integrator;
 end
-
-% inph_ = y.*cos(2*pi*fc*t); 
-% quad_ = -1*y.*sin(2*pi*fc*t);
-% 
-% inph = 2*conv(inph_, lp, 'same');%`filter` doesn't account for the group delay of the filter -- smearing horizontally. what accounts for quadrature??
-% quad = 2*conv(quad_, lp, 'same');
-
-%convolving the whole thing -- no delay. but when you do bit by bit,
-%there's a delay??
-
-
-
-%{
-Line up the data. 
-
-tt = tn(1:end-delay); Remove the last `delay` samples of the original and of the time vector.
-sn = xn(1:end-delay);
-
-sf = xf;
-sf(1:delay) = []; Shift the filtered signal by removing its first `delay` samples.
-%}
-% 
-% t = 0:1/Fs:Tmax-1/Fs; %same as first t vector
-% use costas loop to demodulate
-% works from ~0.95e6-1.05e6
 
 ax2 = nexttile;
 hold on;
@@ -194,7 +179,7 @@ legend('Inph', 'Quad');
 % inph(end-5:end)=zeros(1, 6); %shift back
 % quad(end-5:end)=zeros(1, 6);
 ax3 = nexttile;
-plot(1:N, err);
+plot(1:N, CL_errs);
 title("Error Plot");
 
 ax4 = nexttile;
@@ -208,7 +193,7 @@ reconstructedSignal = inph + 1j*quad;
 
 %% Receive filtering
 Ybb = conv(reconstructedSignal, rrc, "same");
-
+save("symb_sync_input.mat","Ybb");
 % sps;% Number of samples per symbol.
 
 %% Receiver downsampling
@@ -222,18 +207,85 @@ inph_Ybb = real(Ybb);
 quad_Ybb = imag(Ybb);
 %create zero crossing signal
 zero_cross = ~(sign(inph_Ybb(1:end-1).*inph_Ybb(2:end))+1);
-sps_PLL=70;
-%PLL clock recovery pll
-Kp_PLL = 0;%0.3;
-Ki_PLL = 0;%1.1;
-phase_acc = pi+0.00001;
-prev_acc = pi-0.00001;
+
+%% Alternative approach
+% received = zeros(1,Ns);
+% j = 1;
+% zeroCrossings = zeros(1,N);
+% zeroCrossings(1) = 1;
+% margin = 0.05;
+% kis = 0;%0.001;
+% kps = 0;%0.1;
+% lastZero = 1;
+% % for i = 2:N 
+% %     zeroCrossings(i) = ~(reconstructSamples(i)*reconstructSamples(i-1)+1);
+% % end
+% zeroCrossings = ~(sign(inph_Ybb(1:end-1).*inph_Ybb(2:end))+1);
+% sps_guess = 80;
+% sps_guess_over_time(1) = sps_guess;
+% err_over_time = zeros(1,N);
+% for i = 2:N-1 
+% 	% prev_phase = phase;
+% 	% phase = phase + 2*pi/sps_guess;
+%     % %phase = wrapToPi(phase);
+%     % sps_guess_over_time(i) = sps_guess;
+%     % if ( wrapToPi(phase) < -pi*margin && wrapToPi(prev_phase)>pi*margin && i < N-sps_guess)
+% 	%    received(j) = inph_Ybb(i);
+%     %    j = j+1;
+%     % end
+% 
+%     if (zeroCrossings(i))
+% 
+%         distance = i - lastZero;
+%         lastZero = i;
+%         modDistance = mod(distance,sps_guess);
+%         if(modDistance>sps_guess/2)
+%             errsps = modDistance-sps_guess;
+%         else
+%             errsps = modDistance;
+%         end
+% 
+%         %errsps = wrapToPi(phase);
+%         err_over_time(i) = errsps;
+%         % errsum = errsum + errsps;
+% 	    % sps = sps_guess + kps*errsps + kis*errsum;
+%         % sps_guess = sps;
+%     end
+% end
+% 
+% figure; plot(err_over_time);
+%% 
+
+window = 100;
+coeffs = ones(1, window)/window;
+
+sps_PLL=81;
+Kp_PLL = 0;%1.0;%0.3;
+Ki_PLL = 0;%0.01;%1.1;
+
 real_samp = [];
 quad_samp=[];
 samp_index = [];
-err = [];
-integrator = sps_PLL;
-for k = 1:N-1
+ZC_errs = [];
+% ZC_mod_errs = [];
+smoothed_errs = [];
+smoothed_errs_idx = [];
+
+sps_guess = zeros(1,N-1);
+sps_guess(1) = sps_PLL;
+
+phase_acc = pi+0.00001;
+prev_acc = pi-0.00001;
+phase_PLL = zeros([1, N-1]);
+phase_PLL(1) = prev_acc;
+phase_acc_array = [];
+
+integrator = 0;
+err_window = 0;
+% lastZero = 1;
+
+for k = 2:N-1
+  sps_guess(k) = sps_guess(k-1); % prev unless it gets changed in the if-if
   %Check if we have crossed zero on the phase accumulator
   %If the previous value was around -pi and the current value is around pi - we crossed it.
   if (wrapToPi(phase_acc )< -pi * 0.75 && wrapToPi(prev_acc) > pi*0.75)
@@ -245,13 +297,33 @@ for k = 1:N-1
   %Detect zero crossing and use it to tune PLL
   if (zero_cross(k))
     %we have a zero crossing - adjust freq
-    err(end+1) = wrapToPi(phase_acc);
-    integrator = integrator + err(end)*Ki_PLL;
-    sps_PLL = err(end) * Kp_PLL + integrator;
+    err_window = err_window + 1;
+    ZC_errs(end+1) = wrapToPi(phase_acc); % not directly a function of sps_guess
+
+    if (length(ZC_errs) == 99)
+       disp("stop")
+    end
+
+    % if (mod(err_window,window) == 0) %including this introduces NaN's?!?!
+    %     smoothed_err = sum(ZC_errs(end-99:end))/(window+1);
+    %     smoothed_errs(end+1) = smoothed_err;
+    %     smoothed_errs_idx(end+1) = k;
+    %     integrator = integrator + smoothed_err*Ki_PLL; % err(end)
+    %     sps_PLL = smoothed_err * Kp_PLL + integrator; % err(end)
+    %     sps_guess(k) = sps_guess(k) + sps_PLL;
+    % end
+    
   end
+
   prev_acc = phase_acc;
   phase_acc = phase_acc + 2*pi/sps_PLL;
+  % phase_acc_array(end+1) = phase_acc;
+
+  phase_PLL(k) = wrapToPi(phase_acc);
+
 end
+
+length(samp_index)
 
 figure();
 plot (real_samp);
@@ -264,9 +336,81 @@ legend("Real sampled", "Imaginary sampled");
 scatterplot(real_samp+quad_samp*1j);
 title('Received constellation');
 
+% (BEGIN) Symbol sync error function validation
 figure;
-plot(err);
-legend("PLL error");
+tl = tiledlayout(2,1, 'TileSpacing', 'tight');
+title(tl, 'Symbol sync error function validation');
+subtitle(tl, 'Zero-crossings do not occur EXACTLY in between symbols');
+xlabel(tl, 'Sample #');
+txt = ['Transmitter sps: ' num2str(sps) ', K_p PLL = ' num2str(Kp_PLL) ', K_i PLL = ' num2str(Ki_PLL)];
+subtitle(tl, txt);
+
+ax1 = nexttile;
+hold on;
+p1 = stem(1:sps:N, upsampTransSymbols(1:sps:N),'Color',"#0072BD"); %default blue
+ideal_zero_cross = ~(sign(transSymbols(1:end-1).*transSymbols(2:end))+1);
+ideal_zero_cross = [zeros(1,40) upsample(ideal_zero_cross, sps)];
+ideal_zc_indeces = find(ideal_zero_cross);
+
+for k=1:10
+   p2 = xline(ideal_zc_indeces(k),'Color',"#7E2F8E",'Label',ideal_zc_indeces(k),'LabelOrientation','horizontal','LineWidth',3);
+end
+p3 = stem(inph_Ybb, 'LineStyle','none', 'Color',"#EDB120"); % default orange
+
+hold off;
+legend([p1 p2 p3],'Upsampled TRANSMITTED symbols (perfectly upsampled by 80)', 'TX-INTENDED zero-crossing locations (at perfect sps/2 intervals)', 'RECEIVED baseband signal');
+% title('Zero-crossings do not occur EXACTLY in between symbols');
+grid on;
+grid minor;
+
+ax2 = nexttile;
+hold on;
+for k=1:10
+    xline(ideal_zc_indeces(k),'Color',"#7E2F8E",'Label',ideal_zc_indeces(k),'LabelOrientation','horizontal','LineWidth',3);
+end
+p1 = stem(phase_PLL, 'LineStyle','none', 'Color', "#EDB120"); % default orange
+zc_indeces = find(zero_cross); % reusing var name
+p2 = stem(zc_indeces,ZC_errs, 'LineWidth',3, 'Color',"#7E2F8E"); % default purple
+% p3 = stem(smoothed_errs_idx, smoothed_errs,'LineWidth',3);
+hold off;
+% title('Symbol sync validation');
+legend([p1 p2],'PLL phase (its frequency is controlled by sps-PLL)', 'PLL error (at locations of the RX-DETECTED zero-crossings)');
+for k=1:10
+      text(zc_indeces(k)+5,ZC_errs(k),['(' num2str(zc_indeces(k)) ',' num2str(ZC_errs(k)) ')'],'Color',"#7E2F8E");
+end
+
+linkaxes([ax1 ax2], 'x');
+xlim([1 800]);
+grid on;
+grid minor;
+
+% (END) Symbol sync error function validation
+
+figure;
+tl = tiledlayout(2,1, 'TileSpacing', 'tight');
+title(tl, 'Timing Recovery K_P,K_I tuning')
+ax1 = nexttile;
+hold on;
+stem(find(zero_cross), ZC_errs); % should be close to 0, plot every time there's a zero-crossing
+stem(smoothed_errs_idx, smoothed_errs, 'LineWidth',3);
+hold off;
+title(ax1,'PLL error over time');
+legend(ax1,"PLL error", "PLL smoothed error");
+xlabel(ax1,'Sample #');
+grid on;
+grid minor;
+
+ax2=nexttile;
+stem(sps_guess, 'LineStyle','none');
+title(ax2,'SPS guess over time');
+xlabel(ax2,'Sample #')
+
+linkaxes([ax1 ax2], 'x');
+% xlim([1 1e5]);
+grid on;
+grid minor;
+
+%%
 
 % scatterplot(sampYbb);
 
