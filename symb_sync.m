@@ -10,7 +10,7 @@ fc = 1e6; % Carrier frequency (Hz)
 % Complete these expressions using the variables above
 N = Fs*Tmax; % Total number of sample points in the simulation
 Ns = Rs*Tmax; % Number of symbols to send
-sps = Fs/Rs; % Number of samples per symbol.
+sps = N/Ns; % Number of samples per symbol.
 
 loadStruct = load('symb_sync_input.mat');
 Ybb = loadStruct.Ybb;
@@ -244,7 +244,7 @@ legend('PLL error (at locations of the RX-DETECTED zero-crossings)'); % [p1 p2],
 for k=1:10
       text(zc_indeces(k)+5,ZC_errs(k),['(' num2str(zc_indeces(k)) ',' num2str(ZC_errs(k)) ')'],'Color',"#7E2F8E");
 end
-% 
+% cl
 % linkaxes([ax1 ax2], 'x');
 % xlim([1 800]);
 % grid on;
