@@ -34,4 +34,5 @@ function [recovered_signal, timing_error] = timing_recovery_gardner(received_sig
         adjusted_index = max(1, min(N, adjusted_index));
         recovered_signal(n) = received_signal(adjusted_index);
     end
+
 end

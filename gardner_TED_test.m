@@ -23,7 +23,7 @@ transSymbols = loadStruct.module4_symbols;
 inph_Ybb = real(Ybb);
 quad_Ybb = imag(Ybb);
 
-[recovered_signal, timing_error] = timing_recovery_gardner(Ybb, Fs, 1/Fs);
+[recovered_signal, timing_error] = timing_recovery_gardner(Ybb, 1/Rs, 1/Fs);
 
 %%
 figure;
@@ -34,7 +34,7 @@ xlim([0 10000]);
 scatterplot(Ybb(1:sps:N));
 title('IDEAL Received constellation (sampled perfectly)');
 
-scatterplot(recovered_signal);
+scatterplot(recovered_signal(1:sps:N));
 title('Gardner TED function');
 
 figure;
