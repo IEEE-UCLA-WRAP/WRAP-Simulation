@@ -2,21 +2,25 @@ close all;
 clear;
 
 % Parameters
-Fs = 1000; % Sampling frequency
+Fs = 4e6; % Sampling frequency
 T = 1/Fs; % Sampling period
-symbol_rate = 10; % Symbol rate in symbols per second
-T_symbol = 1/symbol_rate; % Symbol period
+Rs = 50e3; % Symbol rate in symbols per second
+T_symbol = 1/Rs; % Symbol period
+Tmax = 0.1;
+N = round(Fs*Tmax); % Total number of sample points in the simulation
+Ns = round(Rs*Tmax); % Number of symbols to send
+sps = round(N/Ns); % Number of samples per symbol.
 
 % Generate test signal
-t = 0:T:T*999; % Time vector
-symbols = sign(randn(1, length(t))); % Random symbols (-1 or 1)
-signal = symbols;%repmat(symbols, 1, 10); % Repeat symbols to create signal
+t = linspace(0, Tmax, N); % Time vector
+symbols = sign(randn(1, round(length(t)/sps))); % Random symbols (-1 or 1)
+signal = upsample(symbols, sps);%repmat(symbols, 1, 10); % Repeat symbols to create signal
 
 % Apply different sampling phase offsets
 phase_offsets = [0, 0.25, 0.5]; % Fraction of symbol period
 for offset = phase_offsets
     % Create received signal with sampling phase offset
-    received_signal = signal .* cos(2*pi*symbol_rate*t + 2*pi*offset);
+    received_signal = signal .* cos(2*pi*Rs*t + 2*pi*offset);
     
     % Perform timing recovery
     [recovered_signal, timing_error] = timing_recovery_gardner(received_signal, T_symbol, T);%T, round(T_symbol/2));
@@ -24,24 +28,32 @@ for offset = phase_offsets
     % Plot original and received signals
     figure;
     ax1 = subplot(2, 1, 1);
-    plot(t, signal);
+    stem(t, signal);
     hold on;
-    stem(t, received_signal, 'LineStyle','none');
-    title(['Original Signal vs. Received Signal (Phase Offset = ', num2str(offset), ')']);
+    plot(t, received_signal);%stem(t, received_signal, 'LineStyle','none');
+    title(['Original Samples vs. Received Samples (Phase Offset = ', num2str(offset), ')']);
     xlabel('Time (s)');
     ylabel('Amplitude');
     legend('Original Signal', 'Received Signal');
 
     % Plot recovered signal
     ax2 = subplot(2, 1, 2);
-    plot(t, signal);
+    stem(t, signal);
     hold on;
-    plot(t, recovered_signal);
-    title('Original Signal vs. Recovered Signal');
+    plot(t, recovered_signal);%stem(t, recovered_signal, 'LineStyle','none');
+    title('Original Samples vs. Recovered Samples');
     xlabel('Time (s)');
     ylabel('Amplitude');
     legend('Original Signal', 'Recovered Signal');
 
     linkaxes([ax1, ax2], 'x');
-    xlim([0 0.25]);
+    xlim([0 0.001]);
+
+    % Perform demodulation
+    demodulated_symbols = recovered_signal(1:sps:end) > 0;
+    
+    % Calculate bit error rate (BER)
+    ber = sum(symbols ~= demodulated_symbols) / length(symbols);
+
+    fprintf('Bit Error Rate (BER): %.5f\n', ber);
 end
