@@ -3,7 +3,7 @@
 @param symbs_out Pointer to output buffer to place symbols from timing recovery
 @param params Pointer to parameter struct which must have **TR_phase**, **TR_integrator**, and **sps** as properties
 */
-int timing_pll(float* rrc_samps_in, float* symbs_out, params_r* params) {
+int timing_recovery(float* rrc_samps_in, float* symbs_out, params_r* params) {
     
     const float Kp = 2.5;
     const float Ki = 0.5;
@@ -13,9 +13,12 @@ int timing_pll(float* rrc_samps_in, float* symbs_out, params_r* params) {
     int i = 1;
     symbs_out[0] = rrc_samps_in[1*params->sps];
 
+    // Avoid buffer overflow of symbol buffer
+    // Avoid illegal past-boundary index access of sample buffer
     while ((i < SYMBOL_BUFF) && (i*params->sps + params->TR_phase < ADC_BUF_LEN)) {
         symbs_out[i] = rrc_samps_in[i*params->sps + params->TR_phase];
 
+        // Mueller-Muller timing error detector
         error = sign(symbs_out[i-1]) * symbs_out[i] - sign(symbs_out[i]) * symbs_out[i - 1];
         
         params->TR_integrator += error;
