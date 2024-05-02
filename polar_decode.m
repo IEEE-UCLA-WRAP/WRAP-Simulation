@@ -1,7 +1,5 @@
 % 17 Nov 2021 EA
 % Erdal Arikan reserves all rights to this code.
-% We thank him for sharing these codes with us for the purpose of the
-% course project and should not be used otherwise.
 
 function uh = polar_decode(Ly,FI,FV)
 % Ly is a log likelihood ratio
