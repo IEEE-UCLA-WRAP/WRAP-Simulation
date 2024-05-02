@@ -2,11 +2,12 @@ clear;
 close all;
 
 %%
+r = 5; % Inverse of code rate
 
 % Values that we're giving you
 Fs = 4e6; % Sampling rate (samples/sec)
 Rs = 50e3; % Symbol rate in symbols/sec (baud)
-Tmax = 0.1; % Max time for the simulation (sec)
+Tmax = 0.1 * r; % Max time for the simulation (sec)
 fc = 1e6; % Carrier frequency (Hz)
 B = 350e6; % if the 
 
@@ -21,7 +22,10 @@ f = linspace(-Fs/2, Fs/2, N); % Frequency vector. Recall from 113 that DFT gives
 
 %% Symbol Generation
 % Generate random set of bits
-bits = randi([0, 1], [1, Ns]);
+original_bits = randi([0, 1], [1, Ns/r]);
+
+% Repetion Code
+bits = generate_repetition_code(original_bits,r);
 
 % Map bits to BPSK symbols
 symbs = 2 * (bits - 0.5);
@@ -91,8 +95,14 @@ title("RX Constellation Diagram")
 %% Bit conversion
 %Conversion to bits
 bits_received = double(rec_samples > 0);
-bit_error_rate = compute_bit_error_rate(bits, bits_received);
 
+% Decode bits
+coded_bits_received = decode_repetition_code(bits_received, r);
+
+bit_error_rate = compute_bit_error_rate(original_bits, coded_bits_received);
+fprintf("Coded Bit error rate: %g %%\n",bit_error_rate);
+
+bit_error_rate = compute_bit_error_rate(bits, bits_received);
 fprintf("Bit error rate: %g %%\n",bit_error_rate);
 
 %% Local functions

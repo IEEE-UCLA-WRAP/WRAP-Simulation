@@ -1,23 +1,24 @@
 close all;
 clear;
 clc;
+set(groot,'defaultFigureVisible','on')
 
 %% Setup
+r = 5; % Inverse of code rate
 
 % Values that we're giving you
 Fs = 4e6; % Sampling rate (samples/sec)
 Rs = 50e3; % Symbol rate in symbols/sec (baud)
-Tmax = 0.1; % Max time for the simulation (sec)
+Tmax = 0.1 * r; % Max time for the simulation (sec)
 fc = 1e6; % Carrier frequency (Hz)
 
 % Complete these expressions using the variables above
 N = Fs*Tmax; % Total number of sample points in the simulation
 Ns = Rs*Tmax; % Number of symbols to send
-sps = Fs/Rs; % Number of samples per symbol.
+sps = Fs/Rs; % Number of samples per symbol
 
 % Use these variables for plotting
 t = linspace(0, Tmax, N); % Time vector 
-f = linspace(-Fs/2, Fs/2, N); % Frequency vector. Recall from 113 that DFT gives us -f/2 to +f/2
 
 %% Symbol generation
 
@@ -34,7 +35,8 @@ bits =[0 1 0 0 0 0 1 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 1,...
        0 1 0 1 1 1 0 1 0 0 0 1 1 0 0 1 0 1];
 
 loadStruct = load('module4_symbols.mat');
-transSymbols = loadStruct.module4_symbols;
+original_transSymbols = loadStruct.module4_symbols;
+transSymbols = generate_repetition_code(original_transSymbols, r);
 
 upsampTransSymbols = upsample(transSymbols, sps);
 
@@ -43,9 +45,9 @@ rrc = rcosdesign(0.2, 10, sps, "sqrt");
 Xbb = conv(upsampTransSymbols, rrc, "same");
 
 %% Modulation
-frequencyOffset = 1e3
+frequencyOffset = 0;
 complexCarrier = exp(-1j*2*pi*(fc+frequencyOffset)*t);
-phaseOffset = pi/4
+phaseOffset = pi/4;
 modulatedSignal = Xbb.*complexCarrier*exp(-1i*phaseOffset);
 
 %% Channel simulation
@@ -57,7 +59,7 @@ Hc = B*s/(s^2 + s*B + fc^2);
 Hd = c2d(Hc, 1/Fs, 'tustin');
 [a, b] = tfdata(Hd);
 
-std_ = 0.05
+std_ = 0.01;
 noise = std_ * randn(1,N);
 Rx = Tx + noise;
 % Filter your transmitted signal with the generated discrete TF. 
@@ -96,7 +98,7 @@ ylabel(tl, 'Value of sample');
 % y = (y-mean(y))/std(y)/10;%25;
 ax1 = nexttile;
 y = (y-mean(y))/std(y)/10;
-plot(y);
+plot((y-mean(y))/std(y)/10);
 title('Normalized signal');
 
 % inph_(1:order) = y(1:order).*2.*cos(2*pi*fc.*t(1:order)+ph(1:order));
@@ -117,6 +119,10 @@ for i=order+1:N
     err(i)=inph(i)*quad(i);
     integrator = integrator + ki*err(i);
     ph(i+1)=ph(i)+err(i)*kp+integrator;
+
+    if(mod(i,30000) == 0)
+        integrator = 0;
+    end
 end
 
 % inph_ = y.*cos(2*pi*fc*t); 
@@ -227,10 +233,17 @@ title('Received constellation');
 %% Symbol detection
 recSymbols = sign(real(sampYbb));
 
+% Introduces random bit flips to verify channel coding works
+p = randperm(Ns);
+p = p(1:500);
+recSymbols(p) = -recSymbols(p);
+
 upsampRecSymbols = upsample(recSymbols, sps);
 recBits = 0.5*(recSymbols + 1);
 
-ber = sum(transSymbols ~= recSymbols)/Ns
+%% BER without channel coding
+ber = sum(transSymbols ~= recSymbols)/Ns;
+fprintf("Bit error rate: %g %%\n",ber*100);
 
 cum_err = zeros(1, Ns);
 cum_err(1) = transSymbols(1) ~= recSymbols(1);
@@ -240,14 +253,31 @@ end
 
 figure;
 plot(cum_err);
-title("Cumulative bit error");
+title("Cumulative Bit Error of Transmitted Symbols");
+
+%% BER with Channel Coding
+num_symbols = Ns/r;
+coded_symbols_received = decode_repetition_code(recSymbols, r);
+
+ber_coded = sum(original_transSymbols ~= coded_symbols_received)/num_symbols;
+fprintf("Coded Bit error rate: %g %%\n",ber_coded*100);
+
+cum_err_coded = zeros(1, num_symbols);
+cum_err_coded(1) = coded_symbols_received(1) ~= original_transSymbols(1);
+for i=2:num_symbols
+    cum_err_coded(i) = cum_err_coded(i-1)+(coded_symbols_received(i) ~= original_transSymbols(i));
+end
+
+figure;
+plot(cum_err_coded);
+title("Cumulative Bit Error of Coded Symbols");
 
 %% Plots
 % Part 2 Transmitted vs Received Signals
 figure();
 tl = tiledlayout('vertical','TileSpacing','tight');
 title(tl, 'Transmitted vs Received Signals');
-txt = ['BER = ' num2str(ber) ', Noise = ' num2str(std_)];
+txt = ['BER = ' num2str(ber_coded) ', Noise = ' num2str(std_)];
 subtitle(tl, txt);
 xlabel(tl, 'Time (s)');
 ylabel(tl, 'Signals');
