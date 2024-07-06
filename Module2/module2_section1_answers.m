@@ -33,7 +33,11 @@ bits = [0 1 0 1 0 1 1 1 0 1 1 0 1 1 1 1 0 1 1 1 0 1 1 1 0 0 1 0 0 0 0 0 0 1,...
 % PSA: For the outlined steps in the starter code, each step may take one or
 % many lines of code to implement. I only included the "symbols = ?" in the next
 % step (and similarly for future steps) so that variable names are consistent
-% among students for easier debugging
+% among students for easier debugging.
+
+% Also, I suggest commenting out all of the steps following your current
+% one so you can actually run the code. The command to comment and
+% uncomment blocks of code is Ctrl+R and Ctrl+T respectively
 
 % TODO 1.1.1: Convert to BPSK Symbols (1's and -1's)
 symbols = bits;
@@ -65,7 +69,7 @@ ps_filter = ones(1, sps);
 % (ignore this if you are not at assignment section 2 yet)
 
 % TODO 1.3.2: Convolve the deltas with the rectangular window
-transmited_baseband = conv(deltas, ps_filter, 'same'); % convolve deltas with srrc
+transmited_baseband = conv(deltas, ps_filter, 'same'); 
 
 % Visualize Transmitted Baseband Signal
 figure;
@@ -156,8 +160,7 @@ received_symbols(received_symbols <= 0) = -1;
 
 %% Map Symbols back to Bits
 
-% TODO 1.9.1: Map the detected symbols back to bits (turn them back to 1's
-% and 0's
+% TODO 1.9.1: Map the detected symbols back to bits (turn them back to 1's and 0's
 detected_bits = received_symbols;
 detected_bits(detected_bits == -1) = 0;
 

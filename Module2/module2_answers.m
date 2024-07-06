@@ -1,12 +1,12 @@
 %% Simulation Setup
 
 Fc = 1e6; % Carrier frequency in Hz
-Fs = 5e6; % Sampling rate
+Fs = 4e6; % Sampling rate
 Rs = 50e3; % Symbol rate in symbols/sec (baud)
 B = 40e3; % Bandwidth
 
 sps = Fs / Rs; % Number of samples per symbol
-num_symbols = 256; % Number of symbols/bits to send
+num_symbols = 296; % Number of symbols/bits to send
 num_samples = num_symbols * sps; % Number of discrete samples
 
 % Use these guys for plotting
@@ -30,28 +30,30 @@ bits = [0 1 0 1 0 1 1 1 0 1 1 0 1 1 1 1 0 1 1 1 0 1 1 1 0 0 1 0 0 0 0 0 0 1,...
         0 1 0 1 1 1 0 0 1 1 0 0 1 0 0 0 0 0 0 1 0 0 0 0 1 1 0 1 1 0 1 1 1 1,... 
         0 1 1 0 1 1 1 1 0 1 1 0 1 1 0 0 0 0 1 0 0 0 0 1];
 
-bits = [0 1 0 0 0 0 1 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 1,...
-       1 1 0 0 1 0 0 1 1 0 0 0 0 1 0 1 1 1 0 1 0 0 0 1 1 1 0 0 1 1 0 0 1 0,...
-       0 0 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 0 1 0 0 1 0 1 1 0 1 1,...
-       0 1 0 1 1 1 0 1 0 1 0 1 1 0 1 1 0 0 0 1 1 0 0 0 0 1 0 1 1 1 0 1 0 0,...
-       0 1 1 0 1 0 0 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 1 0 0 0 1 0 0 0 0 0 0 1,...
-       1 0 1 0 0 1 0 1 1 1 0 0 1 1 0 0 1 0 0 0 0 0 0 1 1 0 0 0 1 1 0 1 1 0,...
-       1 1 1 1 0 1 1 0 1 1 0 1 0 1 1 1 0 0 0 0 0 1 1 0 1 1 0 0 0 1 1 0 0 1,...
-       0 1 0 1 1 1 0 1 0 0 0 1 1 0 0 1 0 1];
+% PSA: For the outlined steps in the starter code, each step may take one or
+% many lines of code to implement. I only included the "symbols = ?" in the next
+% step (and similarly for future steps) so that variable names are consistent
+% among students for easier debugging.
+
+% Also, I suggest commenting out all of the steps following your current
+% one so you can actually run the code. The command to comment and
+% uncomment blocks of code is Ctrl+R and Ctrl+T respectively
 
 % TODO 1.1.1: Convert to BPSK Symbols (1's and -1's)
 
 symbols = bits;
 symbols(symbols == 0) = -1;
 
-% TODO 1.1.2: Visualize BPSK Symbols in a Constellation Diagram
+% Visualize BPSK Symbols in a Constellation Diagram
+scatterplot(symbols);
+title("Transmitted Symbols");
 
 %% Represent Symbols as Time Shifted Deltas
 
 % TODO 1.2.1: Use upsample to form a delta train
 deltas = upsample(symbols, sps);
 
-% Visualize Deltas (xlimited to only first 20 symbols)
+% Visualize Deltas (xlimited to only first ~20 symbols)
 figure;
 stem(t, deltas);
 title("Upsampled Deltas");
@@ -61,16 +63,16 @@ xlim([0, 0.0004]);
 
 %% Filter Deltas with Transmitter Filter
 
-% TODO 1.3.1: Generate rectangular window impulse response
+% TODO 1.3.1: Generate rectangular pulse shape filter
+ps_filter = ones(1, sps);
+
+% TODO 2.2: Replace the rect with an SRRC as the pulse shape filter 
 beta = 0.5; % RRC rolloff factor
 span = 5; % number of symbols for length of filter impulse response
-srrc = rcosdesign(beta, span, sps, 'sqrt'); % srrc transmitter/receiver impulse response
-
-figure;
-plot(srrc)
+ps_filter = rcosdesign(beta, span, sps, 'sqrt'); 
 
 % TODO 1.3.2: Convolve the deltas with the rectangular window
-transmited_baseband = conv(deltas, srrc, 'same'); % convolve deltas with srrc
+transmited_baseband = conv(deltas, srrc, 'same'); 
 
 % TODO 1.3.3: Visualize Transmitted Baseband Signal
 figure;
@@ -84,7 +86,6 @@ xlim([0, 0.0004]);
 
 % TODO 1.4.1: Modulate the baseband signal to passband
 complex_carrier = exp(-1i*2*pi*Fc*t);
-
 analytic_signal = transmited_baseband .* complex_carrier;
 transmitted_signal = real(analytic_signal);
 
@@ -95,7 +96,8 @@ title("FFT of Transmitted Signal");
 xlabel('Frequency (Hz)');
 ylabel('Magnitude');
 
-% TODO 1.3.3: Visualize Transmitted Passband Signal
+% TODO 1.4.2: Visualize Transmitted Passband Signal 
+% (From now on, you do the plotting!)
 figure;
 plot(t, transmitted_signal)
 title("Transmited Passband Signal")
@@ -105,7 +107,7 @@ xlim([0, 0.0004]);
 
 %% Transmit Through Wireless Channel
 
-% TODO
+% TODO 2.1: Apply the channel bandlimit
 s = tf('s'); % Generate the channel filter transfer function
 Hc = B*s/(s^2 + s*B + Fc^2);
 Hd = c2d(Hc, 1/Fs, 'tustin');
@@ -123,11 +125,11 @@ figure;
 bode(Hd);
 title('Discrete-Time Transfer Function');
 
-received_signal = real(filter(a{:}, b{:}, transmitted_signal)); 
+filtered_signal = real(filter(a{:}, b{:}, transmitted_signal)); 
 
 % TODO 1.5.1: Add some AWGN to the signal
-snr = 5;
-received_signal = awgn(received_signal, snr, 'measured');
+snr = 20;
+received_signal = awgn(filtered_signal, snr, 'measured');
 
 % TODO 1.5.2: Plot the Corrupted Signal
 figure;
@@ -139,15 +141,21 @@ xlim([0, 0.0004]);
 
 %% Demodulation
 
-received_signal = normalize(received_signal);
+% TODO 1.6.1: Start demodulation by mixing the received signal by mixing with the sinusoids
+I_ = 2 * received_signal .* cos(2*pi*Fc*t - pi/2);
+Q_ = 2 * received_signal .* sin(2*pi*Fc*t - pi/2);
 
-% TODO 1.6.1: Demodulate the received signal by mixing with the sinusoids
-I = 2 * received_signal .* cos(2*pi*Fc*t - pi/2);
-Q = 2 * received_signal .* sin(2*pi*Fc*t - pi/2);
+% Lowpass filter the previous results to get I and Q
+I = lowpass(I_, 1.5e6, Fs);
+Q = lowpass(Q_, 1.5e6, Fs);
 
-% TODO 1.6.2: Lowpass filter the previous results to get I and Q
-I = lowpass(I, 1.5e6, Fs);
-Q = lowpass(Q, 1.5e6, Fs);
+% TODO 1.6.2: Plot the In Phase Component
+figure;
+plot(t, I)
+title("Received In Phase Component")
+xlabel('Time (s)');
+ylabel('Amplitude');
+xlim([0, 0.0004]);
 
 %% Apply Receiver Impulse Response
 
@@ -160,9 +168,9 @@ received_samples = conv(received_baseband, srrc, 'same'); % convolve deltas with
 %% Sample and Detect Symbols
 
 % TODO 1.8.1: (Naively) sample the received signal at the symbol rate to get the received symbols
-received_symbols = received_samples(1:sps:end);
+received_symbols = downsample(received_samples, sps);
 
-% TODO 1.8.2: Visualize the received symbols in a constellation diagram
+% TODO 1.8.2: Visualize the received symbols in a constellation diagram (scatterplot)
 scatterplot(received_symbols);
 title("Received Symbols");
 
