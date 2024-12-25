@@ -3,7 +3,7 @@
 Fc = 1e6; % Carrier frequency in Hz
 Fs = 4e6; % Sampling rate
 Rs = 50e3; % Symbol rate in symbols/sec (baud)
-B = 40e3; % Bandwidth
+B = 350e3; % Bandwidth
 
 sps = Fs / Rs; % Number of samples per symbol
 num_symbols = 296; % Number of symbols/bits to send
@@ -72,7 +72,7 @@ span = 5; % number of symbols for length of filter impulse response
 ps_filter = rcosdesign(beta, span, sps, 'sqrt'); 
 
 % TODO 1.3.2: Convolve the deltas with the rectangular window
-transmited_baseband = conv(deltas, srrc, 'same'); 
+transmited_baseband = conv(deltas, ps_filter, 'same'); 
 
 % TODO 1.3.3: Visualize Transmitted Baseband Signal
 figure;
@@ -163,7 +163,7 @@ xlim([0, 0.0004]);
 received_baseband = I + 1j * Q;
 
 % TODO 1.7.2: Convolve the received baseband signal with the receiver filter
-received_samples = conv(received_baseband, srrc, 'same'); % convolve deltas with srrc
+received_samples = conv(received_baseband, ps_filter, 'same'); % convolve deltas with srrc
 
 %% Sample and Detect Symbols
 

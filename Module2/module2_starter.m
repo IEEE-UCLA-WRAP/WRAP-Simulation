@@ -3,7 +3,7 @@
 Fc = 1e6; % Carrier frequency in Hz
 Fs = 4e6; % Sampling rate
 Rs = 50e3; % Symbol rate in symbols/sec (baud)
-B = 40e3; % Bandwidth
+B = 350e3; % Bandwidth
 
 sps = Fs / Rs; % Number of samples per symbol
 num_symbols = 296; % Number of symbols/bits to send
