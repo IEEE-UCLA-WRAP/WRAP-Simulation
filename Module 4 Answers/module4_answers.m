@@ -76,18 +76,14 @@ xlim([0, 0.0004]);
 % TODO 1.1: Edit modulate_carrier to implement a constant phase_offset
 % Hint: Add phase_offset as an input paramter to modulate_carrier
 
-phase_offset = 0;
+phase_offset = pi/4;
 transmitted_signal = modulate_carrier(transmited_baseband, Fc, t, phase_offset);
 
 %% Transmit Through Wireless Channel
 
 snr = 10;
-received_signal = add_channel_impairments(transmitted_signal, B, Fc, Fs, snr);
-
-% Here we skipped the channel impairments to better showcase our phase and
-% frequency offsets
-% received_signal = transmitted_signal;
-
+% received_signal = add_channel_impairments(transmitted_signal, B, Fc, Fs, snr);
+received_signal = transmitted_signal;
 % Plot the Received Signal
 figure;
 plot(t, received_signal)
@@ -98,14 +94,15 @@ xlim([0, 0.0004]);
 
 %% Demodulation
 
-% TODO 1.2: Encorporate a random frequency offset
+% TODO 1.2: Encorporate a frequency offset
+frequency_offset = Fc * 0.01;
+Fr = Fc + frequency_offset;
 
-Fr = Fc + 0;
-
-% TODO Comment this out to replace with the costas_loop function
+% TODO 3.0.0 Comment below line out so we can replace with the costas_loop function
 % [I, Q] = naive_demod(received_signal, Fr, Fs, t);
 
-% TODO: Normalize the signal for stability of PID tuning constants
+% TODO 3.0.1: and normalize the signal for stability of PID tuning constants
+% Hint: Use the normalize function
 normalized_signal = normalize(received_signal);
 
 % PID Tuning Constants
@@ -113,7 +110,7 @@ Kp = 0.1;
 Ki = 0.002;
 Kd = 0;
 
-% TODO 1.6.1: Complete Costas Loop function
+% TODO: Uncomment line below and complete Costas Loop function
 [I, Q, theta, err] = costas_loop(normalized_signal, Fc, Fs, t, Kp, Ki, Kd);
 
 figure;

@@ -4,10 +4,10 @@ function [I, Q] = naive_demod(signal, Fc, Fs, t)
     Q_ = 2 * signal .* -sin(2*pi*Fc*t);
 
     % Create a 1.5 MHz lowpass filter
-    lp = designfilt('lowpassfir', 'FilterOrder', 6, 'CutoffFrequency', 1.5e6, 'SampleRate', Fs).Coefficients;
+    lp = designfilt('lowpassfir', 'FilterOrder', 5, 'CutoffFrequency', 1.5e6, 'SampleRate', Fs).Coefficients;
 
     % Analyze the generated filter
-    filterAnalyzer(lp);
+    % filterAnalyzer(lp);
 
     % Lowpass filter the previous results to get I and Q
     I = conv(I_, lp, 'same');

@@ -3,33 +3,33 @@ function [I, Q, theta, err] = costas_loop(signal, fr, Fs, t, Kp, Ki, Kd)
     theta = zeros(1, length(signal));
     I = zeros(1, length(signal));
     Q = zeros(1, length(signal));
-    I_mod = zeros(1, length(signal));
-    Q_mod = zeros(1, length(signal));
+    I_ = zeros(1, length(signal));
+    Q_ = zeros(1, length(signal));
     err = zeros(1, length(signal));
     
-    % Design low-pass filter
-    order = 5;
-    lp = designfilt('lowpassfir', 'FilterOrder', order, 'CutoffFrequency', 0.2 * fr / Fs);
+    % TODO 3.1.0: Design low-pass filter
+    M = 5;
+    lp = ?
     
-    for i = (1 + order):length(signal)
-        % Costas Loop Joint Demodulation & Carrier Phase Recovery
-        %1) Demodulate
-        I_mod(i) = signal(i) * 2 * cos(2 * pi * fr * t(i) + theta(i));
-        Q_mod(i) = signal(i) * -2 * sin(2 * pi * fr * t(i) + theta(i));
+    % Iterate from index M + 1 to the end of the array
+    for k = (M + 1):length(signal)
+
+        % TODO 3.1.1: Mix the signal with the sines and cosines
+        I_(k) = ?
+        Q_(k) = ?
      
-        %2) Lowpass
-        Ismoothed = filter(lp, I_mod(i-order:i));
-        Qsmoothed = filter(lp, Q_mod(i-order:i));
+        % TODO 3.1.2: Lowpass the past M samples
+        % Hint: use conv with the "full" parameter, then extract the M+1th
+        % element from the resulting array
         
-        %3) Extract I and Q
-        I(i) = Ismoothed(end);
-        Q(i) = Qsmoothed(end);
+        I(k) = ? % (Does not have to be a one line solution)
+        Q(k) = ?
         
-        %4) Calculate Error (Costas Phase Error Detector)
-        err(i) = I(i) * Q(i);
+        % TODO 3.2.1: Calculate the error at this sample point
+        % err(k) = ?;
         
-        %5) Update Theta
-        theta(i+1) = theta(i) + Kp*err(i) + Ki*sum(err) + Kd*(err(i)-err(i-1));
+        % TODO 3.2.2: Update theta at this sample point
+        % theta( ? ) = ?;
     
     end
 end
