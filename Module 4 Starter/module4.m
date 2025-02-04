@@ -116,7 +116,7 @@ Ki = 0.002;
 Kd = 0;
 
 % TODO: Uncomment line below and complete Costas Loop function
-% [I, Q, theta, err] = costas_loop(normalized_signal, Fc, Fs, t, Kp, Ki, Kd);
+% [I, Q, theta, err] = costas_loop(normalized_signal, Fr, Fs, t, Kp, Ki, Kd);
 
 figure;
 plot(t, I)
@@ -136,6 +136,7 @@ received_samples = conv(received_baseband, ps_filter, 'same');
 %% Sample and Detect Symbols
 
 % (Naively) sample the received signal at the symbol rate to get the received symbols
+% Fixing this assumption will be a main focus of the next module
 received_symbols = downsample(received_samples, sps);
 
 % Visualize the received symbols in a constellation diagram (scatterplot)

@@ -110,7 +110,7 @@ xlim([0, 0.0004]);
 % TODO 1.5.1: Add some AWGN to the signal
 snr = 20;
 % received_signal = awgn(transmitted_signal, snr, 'measured');
-received_signal = transmitted_signal
+received_signal = transmitted_signal;
 
 % TODO 1.5.2: Plot the Corrupted Signal
 figure;

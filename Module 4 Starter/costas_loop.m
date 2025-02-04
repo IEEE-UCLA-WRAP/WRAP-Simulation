@@ -18,17 +18,14 @@ function [I, Q, theta, err] = costas_loop(signal, fr, Fs, t, Kp, Ki, Kd)
         I_(k) = ?
         Q_(k) = ?
      
-        % TODO 3.1.2: Lowpass the past M samples
-        % Hint: use conv with the "full" parameter, then extract the M+1th
-        % element from the resulting array
-        
+        % TODO 3.1.2: Lowpass with the previous M samples
         I(k) = ? % (Does not have to be a one line solution)
         Q(k) = ?
         
         % TODO 3.2.1: Calculate the error at this sample point
         % err(k) = ?;
         
-        % TODO 3.2.2: Update theta at this sample point
+        % TODO 3.2.2: Update theta for next sample point
         % theta( ? ) = ?;
     
     end

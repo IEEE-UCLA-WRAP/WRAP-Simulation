@@ -73,9 +73,6 @@ xlim([0, 0.0004]);
 
 %% Modulate Baseband Signal to Passband
 
-% TODO 1.1: Edit modulate_carrier to implement a constant phase_offset
-% Hint: Add phase_offset as an input paramter to modulate_carrier
-
 phase_offset = pi/4;
 transmitted_signal = modulate_carrier(transmited_baseband, Fc, t, phase_offset);
 
@@ -94,15 +91,11 @@ xlim([0, 0.0004]);
 
 %% Demodulation
 
-% TODO 1.2: Encorporate a frequency offset
-frequency_offset = Fc * 0.05;
+% Encorporate a frequency offset
+frequency_offset = Fc * 0.01;
 Fr = Fc + frequency_offset;
 
-% TODO 3.0.0 Comment below line out so we can replace with the costas_loop function
-% [I, Q] = naive_demod(received_signal, Fr, Fs, t);
-
-% TODO 3.0.1: and normalize the signal for stability of PID tuning constants
-% Hint: Use the normalize function
+% Normalize the signal for stability of PID tuning constants
 normalized_signal = normalize(received_signal);
 
 % PID Tuning Constants
@@ -110,8 +103,8 @@ Kp = 0.1;
 Ki = 0.002;
 Kd = 0;
 
-% TODO: Uncomment line below and complete Costas Loop function
-[I, Q, theta, err] = costas_loop(normalized_signal, Fr, Fs, t, Kp, Ki, Kd);
+% Costas Loop to extract I and Q components
+[I, Q, theta, err] = costas_loop(normalized_signal, Fc, Fs, t, Kp, Ki, Kd);
 
 figure;
 plot(t, I)
@@ -130,9 +123,14 @@ received_samples = conv(received_baseband, ps_filter, 'same');
 
 %% Sample and Detect Symbols
 
-% (Naively) sample the received signal at the symbol rate to get the received symbols
-% Fixing this assumption will be a main focus of the next module
-received_symbols = downsample(received_samples, sps);
+% TODO Reapply normalization to the received samples
+
+% TODO Impl
+[received_symbols, tau, error] = timing_recovery(x, sps, Kp, Ki, Kd, "Mueller-Muller"); 
+
+% Timing Recovery Plotting
+
+% Frame Syncronization!
 
 % Visualize the received symbols in a constellation diagram (scatterplot)
 scatterplot(received_symbols);
