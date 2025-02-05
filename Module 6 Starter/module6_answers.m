@@ -127,42 +127,35 @@ received_samples = conv(received_baseband, ps_filter, 'same');
 
 %% Sample and Detect Symbols
 
-% Apply SPS frequency offset at the receiver
-sps_offset = 0;
-received_sps = 80 + sps_offset;
+% TODO 1.1: Apply SPS frequency offset at the receiver
+received_sps = ?
 
-% Apply SPS phase offset at the receiver
-received_samples = [zeros(1,40) received_samples];
+% TODO 1.2: Apply SPS phase offset at the receiver
+received_samples = ?
 
 % Naively sample the received signal at the symbol rate to get the received symbols
 naive_received_symbols = downsample(received_samples, received_sps);
 
 % Visualize the received symbols in a constellation diagram (scatterplot)
-% scatterplot(naive_received_symbols);
-% title("Naively Sampled Symbols");
+scatterplot(naive_received_symbols);
+title("Naively Sampled Symbols");
 
-scatterplot(received_samples(100*received_sps:received_sps:300*received_sps))
-title("Non-Timed Symbol Constellation")
-
+% Normalize for stability for PID stability
 received_samples = normalize(real(received_samples));
 
-% Implement one (or multiple) of the timing error detectors to properly sample
+% TODO Section 2: Implement one (or multiple) of the timing error detectors to properly sample
 % PID Tuning Constants
-Kp = 4.5; % observe how Kp causes faster settling w/o oscillation but increases self-noise effect
-Ki = 0.4; % observe how Ki smooths the oscillations before settling to a constant offset (but eventually goes unstable)
-Kd = 0.0; % observe how Kd increases high frequency noise in the lock
+Kp = ? % observe how Kp causes faster settling w/o oscillation but increases self-noise effect
+Ki = ? % observe how Ki smooths the oscillations before settling to a constant offset (but eventually goes unstable)
+Kd = ? % observe how Kd increases high frequency noise in the lock
 
-% Apply Timing Recovery
-method = 'Mueller-Muller';
-% method = 'Gardner';
-% method = 'Early-Late Gate';
-symbs = timing_recovery(received_samples, received_sps, Kp, Ki, Kd, method);
+% Recreate the downsample function iteratively, then implement the TED
 
-% Visualize the received symbols in a constellation diagram (scatterplot)
-scatterplot(symbs(300:end))
-title("TED Sampled Symbols");
+symbs = ?
 
-% Timing Recovery Plotting
+% TODO: Visualize the properly receieved samples
+% Note: A good chunk of the early symbols might be garbage as the TED locks on, so feel free
+%       to only plot the later end of the symbols
 
 % TODO: You'll probably want to change this once you have the timing error detector
 received_symbols = naive_received_symbols;
@@ -179,34 +172,31 @@ detected_bits(detected_bits == -1) = 0;
 
 %% Frame Syncronization!
 
-%% Frame Synchronization via Correlation
-
 key = [+1 +1 +1 -1 -1 -1 +1 -1 -1 +1 -1];
 
 % Frame Sync Algorithm
-num_chars = 7;
-[message_bits, xc, peak_xcorr] = frame_synchronize(symbols, key, num_chars);
-% Frame Sync Plots
-figure;
-plot(xc)
-title("Cross-Correlation with Key")
+num_message_chars = 7;
+
+% TODO 3.1: Cross correlate and extract where the message starts
+
+% TODO 3.2: Plot the cross correlation with the key
+
 
 %% Extract Binary message
 
-% Map aligned symbols back to bits
-message = message_bits;
-message(message_bits == -1) = 0;
+% TODO 3.3: Get binary message to decode
+% message = ?
 
 %% Decode and Display Message
 
-s = string(message);
-s = strjoin(s);
-s = strrep(s, " ", "");
-disp(s);
-s_len = length(char(s));
-inputString = char(s);
-binaryString = inputString(1:end-mod(length(inputString),8));
-binaryChunks = reshape(binaryString, 8, []).';
-asciiChars = char(bin2dec(binaryChunks)).';
-disp(asciiChars);
-%% 
+% TODO 3.4: Uncomment this and you should see your final message!
+% s = string(message);
+% s = strjoin(s);
+% s = strrep(s, " ", "");
+% disp(s);
+% s_len = length(char(s));
+% inputString = char(s);
+% binaryString = inputString(1:end-mod(length(inputString),8));
+% binaryChunks = reshape(binaryString, 8, []).';
+% asciiChars = char(bin2dec(binaryChunks)).';
+% disp(asciiChars);

@@ -1,4 +1,4 @@
-function [symbs, tau, err] = timing_recovery(x, sps, Kp, Ki, Kd, method)
+function symbs = timing_recovery(x, sps, Kp, Ki, Kd, method)
     % Array Setup
     i = 2;
     err = zeros(1, ceil(length(x) / sps));
