@@ -8,7 +8,7 @@ function [I, Q, theta, err] = costas_loop(signal, fr, Fs, t, Kp, Ki, Kd)
     err = zeros(1, length(signal));
     
     % Design low-pass filter
-    M = 5;
+    M = 10;
     lp = designfilt('lowpassfir', 'FilterOrder', M, 'CutoffFrequency', 1.5e6, 'SampleRate', Fs).Coefficients;
     
     % Iterate from index M + 1 to the end of the array

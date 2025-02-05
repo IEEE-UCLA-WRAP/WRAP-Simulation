@@ -6,7 +6,7 @@ Rs = 50e3; % Symbol rate in symbols/sec (baud)
 B = 350e3; % Bandwidth
 
 sps = Fs / Rs; % Number of samples per symbol
-num_symbols = 368; % Number of symbols/bits to send
+num_symbols = 460; % Number of symbols/bits to send
 num_samples = num_symbols * sps; % Number of discrete samples
 
 % Use these guys for plotting
@@ -20,17 +20,20 @@ close all;
 
 % Below are the bits for the binary message that we want to send
 
-bits = [0 1 0 0 1 0 0 0 0 1 1 0 0 0 0 1 0 1 1 1 0 0 1 0 0 1 1 0 0 1 0 0 0 1,... 
-        1 1 0 1 1 1 0 1 1 0 0 0 0 1 0 1 1 1 0 0 1 0 0 1 1 0 0 1 0 1 0 0 1 0,...
-        0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 1 0 1 0 1 0 1 1 0 0 0 1 1 0 1 1 0 1 0,...
-        1 1 0 1 1 1 0 0 1 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 1 0 1 1 1,...
-        0 1 1 0 1 0 0 1 0 1 1 1 0 1 0 0 0 1 1 0 0 0 1 1 0 1 1 0 1 0 0 0 0 0,...
-        1 0 0 0 0 0 0 1 0 1 0 1 0 0 0 1 1 0 1 1 1 1 0 0 1 0 0 0 0 0 0 1 0 0,...
-        0 0 1 1 0 1 1 0 1 1 1 1 0 1 1 0 1 1 0 1 0 1 1 1 0 0 0 0 0 1 1 1 0 1,...
-        0 1 0 1 1 1 0 1 0 0 0 1 1 0 0 1 0 1 0 1 1 1 0 0 1 0 0 0 1 0 0 0 0 0,...
-        0 1 0 0 0 1 0 1 0 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 1 1 0 1 0 0 1 0 1,...
-        1 0 1 1 1 0 0 1 1 0 0 1 0 1 0 1 1 0 0 1 0 1 0 1 1 1 0 0 1 0 0 1 1 0,...
-        1 0 0 1 0 1 1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 0 1 0 0 0 0 1];
+bits = [0 1 0 0 0 1 0 1 1 1 0 0 1 0 0 1 1 0 0 1 0 0 0 1 1 1 0 1 1 1 0 1 1 0,...
+        0 0 0 1 0 1 1 1 0 0 1 0 0 1 1 0 0 1 0 1 0 0 1 0 0 0 0 0 0 1 0 1 0 0,...
+        1 1 0 1 1 1 0 1 0 1 0 1 1 0 0 0 1 1 0 1 1 0 1 0 1 1 0 1 1 1 0 0 1 1,...
+        0 0 1 0 0 0 0 0 0 1 0 1 0 0 1 1 0 1 1 1 0 1 1 1 0 1 1 0 1 0 0 1 0 1,...
+        1 1 0 1 0 0 0 1 1 0 0 0 1 1 0 1 1 0 1 0 0 0 0 0 0 0 1 1 0 1 1 0 1 1,...
+        1 1 0 1 1 0 1 1 0 1 0 1 1 1 0 0 0 0 0 1 1 1 0 1 0 1 0 1 1 1 0 1 0 0,...
+        0 1 1 0 0 1 0 1 0 1 1 1 0 0 1 0 0 0 1 0 0 0 0 0 0 1 0 0 0 1 0 1 0 1,...
+        1 0 1 1 1 0 0 1 1 0 0 1 1 1 0 1 1 0 1 0 0 1 0 1 1 0 1 1 1 0 0 1 1 0,...
+        0 1 0 1 0 1 1 0 0 1 0 1 0 1 1 1 0 0 1 0 0 1 1 0 1 0 0 1 0 1 1 0 1 1,...
+        1 0 1 0 1 0 0 1 0 1 1 0 1 0 1 1 1 1 1 1 1 1 0 0 0 1 0 0 1 0 0 1 0 1,...
+        0 0 1 1 0 1 1 0 1 0 1 1 0 1 1 0 1 0 0 1 0 1 1 0 0 0 1 0 0 1 1 0 1 0,... 
+        0 1 0 1 1 0 0 1 0 0 0 1 1 0 1 0 0 1 0 0 1 1 0 1 1 0 1 0 1 1 0 1 1 0,... 
+        1 0 0 1 0 1 1 0 0 0 1 0 0 1 1 0 1 0 0 1 0 1 1 0 0 1 0 0 0 1 1 0 1 0,...
+        1 0 0 1 1 0 0 1 1 1 0 0 1 0 0 0 0 1];
 
 % Convert to BPSK Symbols (1's and -1's)
 symbols = bits;
@@ -57,7 +60,7 @@ xlim([0, 0.0004]);
 
 % Use an SRRC as the pulse shape filter 
 beta = 0.5; % RRC rolloff factor
-span = 5; % number of symbols for length of filter impulse response
+span = 10; % number of symbols for length of filter impulse response
 ps_filter = rcosdesign(beta, span, sps, 'sqrt'); 
 
 % Convolve the deltas with the rectangular window
@@ -73,13 +76,14 @@ xlim([0, 0.0004]);
 
 %% Modulate Baseband Signal to Passband
 
-phase_offset = pi/4;
+phase_offset = pi/8;
 transmitted_signal = modulate_carrier(transmited_baseband, Fc, t, phase_offset);
 
 %% Transmit Through Wireless Channel
 
-snr = 10;
+snr = 30;
 received_signal = add_channel_impairments(transmitted_signal, B, Fc, Fs, snr);
+% received_signal = transmitted_signal;
 
 % Plot the Received Signal
 figure;
@@ -92,7 +96,7 @@ xlim([0, 0.0004]);
 %% Demodulation
 
 % Encorporate a frequency offset
-frequency_offset = Fc * 0.01;
+frequency_offset = Fc * 0.1;
 Fr = Fc + frequency_offset;
 
 % Normalize the signal for stability of PID tuning constants
@@ -123,18 +127,45 @@ received_samples = conv(received_baseband, ps_filter, 'same');
 
 %% Sample and Detect Symbols
 
-% TODO Reapply normalization to the received samples
+% Apply SPS frequency offset at the receiver
+sps_offset = 0;
+received_sps = 80 + sps_offset;
 
-% TODO Impl
-[received_symbols, tau, error] = timing_recovery(x, sps, Kp, Ki, Kd, "Mueller-Muller"); 
+% Apply SPS phase offset at the receiver
+received_samples = [zeros(1,40) received_samples];
+
+% Naively sample the received signal at the symbol rate to get the received symbols
+naive_received_symbols = downsample(received_samples, received_sps);
+
+% Visualize the received symbols in a constellation diagram (scatterplot)
+% scatterplot(naive_received_symbols);
+% title("Naively Sampled Symbols");
+
+scatterplot(received_samples(100*received_sps:received_sps:300*received_sps))
+title("Non-Timed Symbol Constellation")
+
+received_samples = normalize(real(received_samples));
+
+% Implement one (or multiple) of the timing error detectors to properly sample
+% PID Tuning Constants
+Kp = 4.5; % observe how Kp causes faster settling w/o oscillation but increases self-noise effect
+Ki = 0.4; % observe how Ki smooths the oscillations before settling to a constant offset (but eventually goes unstable)
+Kd = 0.0; % observe how Kd increases high frequency noise in the lock
+
+% Apply Timing Recovery
+method = 'Mueller-Muller';
+% method = 'Gardner';
+% method = 'Early-Late Gate';
+[symbs, tau, err] = timing_recovery(received_samples, received_sps, Kp, Ki, Kd, method);
+
+% Visualize the received symbols in a constellation diagram (scatterplot)
+scatterplot(symbs(300:end))
+title("TED Sampled Symbols");
 
 % Timing Recovery Plotting
 
-% Frame Syncronization!
-
-% Visualize the received symbols in a constellation diagram (scatterplot)
-scatterplot(received_symbols);
-title("Received Symbols");
+% TODO: You'll probably want to change this once you have the timing error detector
+received_symbols = naive_received_symbols;
 
 % Apply Thresholding to detect the symbols (turning them back to 1's and -1's)
 received_symbols(received_symbols > 0) = 1;
@@ -146,21 +177,37 @@ received_symbols(received_symbols <= 0) = -1;
 detected_bits = received_symbols;
 detected_bits(detected_bits == -1) = 0;
 
-% Calculate Bit Error Rate
-num_bit_errors = sum(detected_bits(1:length(bits)) ~= bits)
-BER = 100 * num_bit_errors / length(bits)
+%% Frame Syncronization!
+
+%% Frame Synchronization via Correlation
+
+key = [+1 +1 +1 -1 -1 -1 +1 -1 -1 +1 -1];
+
+% Frame Sync Algorithm
+num_chars = 7;
+[message_bits, xc, peak_xcorr] = frame_synchronize(symbols, key, num_chars);
+% Frame Sync Plots
+figure;
+plot(xc)
+title("Cross-Correlation with Key")
+
+%% Extract Binary message
+
+% Map aligned symbols back to bits
+message = message_bits;
+message(message_bits == -1) = 0;
 
 %% Decode and Display Message
 
-% If you have successfully decoded the message, you should see a nice
-% message
-s = string(detected_bits);
+s = string(message);
 s = strjoin(s);
 s = strrep(s, " ", "");
 disp(s);
-s_len = length(char(s))
+s_len = length(char(s));
 inputString = char(s);
 binaryString = inputString(1:end-mod(length(inputString),8));
 binaryChunks = reshape(binaryString, 8, []).';
 asciiChars = char(bin2dec(binaryChunks)).';
 disp(asciiChars);
+%% 
+% Message should be "Congrats! Simulation is complete"
