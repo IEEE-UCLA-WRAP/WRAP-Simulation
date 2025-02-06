@@ -128,13 +128,13 @@ received_samples = conv(received_baseband, ps_filter, 'same');
 %% Sample and Detect Symbols
 
 % TODO 1.1: Apply SPS frequency offset at the receiver
-received_sps = ?
+% sps = ?
 
 % TODO 1.2: Apply SPS phase offset at the receiver
-received_samples = ?
+% received_samples = ?
 
 % Naively sample the received signal at the symbol rate to get the received symbols
-naive_received_symbols = downsample(received_samples, received_sps);
+naive_received_symbols = downsample(received_samples, sps);
 
 % Visualize the received symbols in a constellation diagram (scatterplot)
 scatterplot(naive_received_symbols);
@@ -145,13 +145,13 @@ received_samples = normalize(real(received_samples));
 
 % TODO Section 2: Implement one (or multiple) of the timing error detectors to properly sample
 % PID Tuning Constants
-Kp = ? % observe how Kp causes faster settling w/o oscillation but increases self-noise effect
-Ki = ? % observe how Ki smooths the oscillations before settling to a constant offset (but eventually goes unstable)
-Kd = ? % observe how Kd increases high frequency noise in the lock
+% Kp = ? % observe how Kp causes faster settling w/o oscillation but increases self-noise effect
+% Ki = ? % observe how Ki smooths the oscillations before settling to a constant offset (but eventually goes unstable)
+% Kd = ? % observe how Kd increases high frequency noise in the lock
 
 % Recreate the downsample function iteratively, then implement the TED
 
-symbs = ?
+% symbs = ?
 
 % TODO: Visualize the properly receieved samples
 % Note: A good chunk of the early symbols might be garbage as the TED locks on, so feel free
@@ -172,7 +172,7 @@ detected_bits(detected_bits == -1) = 0;
 
 %% Frame Syncronization!
 
-key = [+1 +1 +1 -1 -1 -1 +1 -1 -1 +1 -1];
+% key = ?
 
 % Frame Sync Algorithm
 num_message_chars = 7;
