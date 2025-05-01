@@ -4,12 +4,15 @@ function symbs = timing_recovery(x, sps, Kp, Ki, Kd, method)
     err = zeros(1, ceil(length(x) / sps));
     symbs = zeros(1, ceil(length(x) / sps));
     tau = zeros(1, 1 + ceil(length(x) / sps));
+    sps_guess = zeros(1, 1 + ceil(length(x) / sps));
     % Draw first symbol -- no locking affects first symb, just draw naively
     symbs(1) = x(round(1*sps));
+    sps_guess(1) = sps;
     
     % Begin locking
     while round(i*sps + tau(i)) < length(x)
         symbs(i) = x(round(i*sps + tau(i)));
+        sps_guess(i) = i*sps + tau(i) - ((i-1)*sps + tau(i-1));
         
         switch method
             case 'Early-Late Gate'
@@ -25,6 +28,19 @@ function symbs = timing_recovery(x, sps, Kp, Ki, Kd, method)
     
         i = i + 1;
     end
+
+    figure;
+    plot(err)
+    title("Timing Recovery Error")
+    xlabel('Symbol');
+    ylabel('Error');
+
+    figure;
+    plot(sps_guess)
+    title("Timing Recovery SPS Guess")
+    xlabel('Symbol');
+    ylabel('SPS guess');
+    ylim([0, 100]);
 end
 
 % Mueller-Muller
